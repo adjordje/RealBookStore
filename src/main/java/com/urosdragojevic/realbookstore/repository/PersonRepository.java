@@ -33,6 +33,7 @@ public class PersonRepository {
                 personList.add(createPersonFromResultSet(rs));
             }
         } catch (SQLException e) {
+            LOG.warn("Fetch all users fail");
             e.printStackTrace();
         }
         return personList;
@@ -48,7 +49,12 @@ public class PersonRepository {
             while (rs.next()) {
                 personList.add(createPersonFromResultSet(rs));
             }
+        }        catch (SQLException e) {
+            LOG.warn("Fail person fetch by searchTerm for " + searchTerm);
+            e.printStackTrace();
         }
+
+        AuditLogger.getAuditLogger(PersonRepository.class).audit("Searching user by term: " + searchTerm);
         return personList;
     }
 
@@ -61,6 +67,7 @@ public class PersonRepository {
                 return createPersonFromResultSet(rs);
             }
         } catch (SQLException e) {
+            LOG.warn("Fail user get for id" + personId);
             e.printStackTrace();
         }
 
@@ -74,8 +81,10 @@ public class PersonRepository {
         ) {
             statement.executeUpdate(query);
         } catch (SQLException e) {
+            LOG.warn("Fail user delete for id " + personId);
             e.printStackTrace();
         }
+        AuditLogger.getAuditLogger(PersonRepository.class).audit("Deleting user with id " + personId);
     }
 
     private Person createPersonFromResultSet(ResultSet rs) throws SQLException {
@@ -99,7 +108,9 @@ public class PersonRepository {
             statement.setString(2, email);
             statement.executeUpdate();
         } catch (SQLException e) {
+            LOG.warn("Fail user update for " + personUpdate.toString());
             e.printStackTrace();
         }
+        AuditLogger.getAuditLogger(PersonRepository.class).audit("Update user: " + personUpdate.toString());
     }
 }

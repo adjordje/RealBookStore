@@ -1,5 +1,6 @@
 package com.urosdragojevic.realbookstore.repository;
 
+import com.urosdragojevic.realbookstore.audit.AuditLogger;
 import com.urosdragojevic.realbookstore.domain.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,6 +24,7 @@ public class UserRepository {
     }
 
     public User findUser(String username) {
+
         String query = "SELECT id, username, password FROM users WHERE username='" + username + "'";
         try (Connection connection = dataSource.getConnection();
              Statement statement = connection.createStatement();
@@ -34,8 +36,10 @@ public class UserRepository {
                 return new User(id, username1, password);
             }
         } catch (SQLException e) {
+            LOG.warn("Fail user search by name: " + username);
             e.printStackTrace();
         }
+        AuditLogger.getAuditLogger(UserRepository.class).audit("User return for name: " + username);
         return null;
     }
 
@@ -46,6 +50,7 @@ public class UserRepository {
              ResultSet rs = statement.executeQuery(query)) {
             return rs.next();
         } catch (SQLException e) {
+            LOG.error("Fail user credentials for name: " + username);
             e.printStackTrace();
         }
         return false;
@@ -58,7 +63,9 @@ public class UserRepository {
         ) {
             statement.executeUpdate(query);
         } catch (SQLException e) {
+            LOG.warn("Fail user deletion by id: " + userId);
             e.printStackTrace();
         }
+        AuditLogger.getAuditLogger(UserRepository.class).audit("Removing user with id " + userId);
     }
 }

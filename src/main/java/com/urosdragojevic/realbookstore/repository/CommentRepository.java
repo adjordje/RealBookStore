@@ -1,5 +1,6 @@
 package com.urosdragojevic.realbookstore.repository;
 
+import com.urosdragojevic.realbookstore.audit.AuditLogger;
 import com.urosdragojevic.realbookstore.domain.Comment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,8 +35,10 @@ public class CommentRepository {
             statement.setString(3, comment.getComment());
             statement.executeUpdate();
         } catch (SQLException e) {
+            LOG.warn("Comment creation fail for: " + comment.getComment());
             e.printStackTrace();
         }
+        AuditLogger.getAuditLogger(CommentRepository.class).audit("Comment creation for: " + comment.getComment());
     }
 
     public List<Comment> getAll(int bookId) {
@@ -48,6 +51,7 @@ public class CommentRepository {
                 commentList.add(new Comment(rs.getInt(1), rs.getInt(2), rs.getString(3)));
             }
         } catch (SQLException e) {
+            LOG.warn("Failed comment fetch for id " + bookId);
             e.printStackTrace();
         }
         return commentList;
